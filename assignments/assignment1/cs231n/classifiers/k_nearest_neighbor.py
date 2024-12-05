@@ -77,7 +77,7 @@ class KNearestNeighbor(object):
                 #####################################################################
                 # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-                pass
+                dists[i, j] = np.sqrt(np.sum(np.power(X[i] - self.X_train[j], 2)))
 
                 # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         return dists
@@ -101,7 +101,7 @@ class KNearestNeighbor(object):
             #######################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-            pass
+            dists[i, :] = np.sqrt(np.sum(np.power(X[i] - self.X_train, 2), axis=1))
 
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         return dists
@@ -131,7 +131,20 @@ class KNearestNeighbor(object):
         #########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        # dists作为结果矩阵，尺寸应该是 Nte*Ntr 也就是500 * 5000在这里
+        # X作为测试集尺寸是 Nte*N 也就是 500 * N
+        # X_train尺寸是 Ntr*N 也就是 5000 * N
+        # 利用矩阵乘法 X multiply X_train^T 可以得到 Nte*Ntr的矩阵
+        # 并且！注意到矩阵乘法的操作是对图片对应像素相乘，然后总体相加得到res[i,j]
+        # 也就是说res[i,j] = ΣI_1*I_2
+        # wait！这和L2距离不谋而合，因为L2距离可以写成 /sqrt{ΣI_1^2 + I_2^2 -I_1I_2}
+        # 所以L2距离只需要 算出对应像素的平方和然后减去矩阵相乘 最后开方
+
+        tmp = np.matmul(X, self.X_train.T)
+        X1 = np.sum(np.square(X), axis=1)
+        X2 = np.sum(np.square(self.X_train), axis=1)
+        
+        dists = np.sqrt(X1[:,np.newaxis] + X2 - 2 * tmp)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         return dists
@@ -164,7 +177,7 @@ class KNearestNeighbor(object):
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-            pass
+            closest_y = self.y_train[np.argsort(dists[i])[:k]]
 
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
             #########################################################################
@@ -176,7 +189,7 @@ class KNearestNeighbor(object):
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-            pass
+            y_pred[i] = np.argmax(np.bincount(closest_y))
 
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
