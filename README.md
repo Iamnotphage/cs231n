@@ -16,3 +16,4 @@ CV入门
 
 [Q2: Training a Support Vector Machine](./assignments/assignment1/svm.ipynb)
 
+[Q3: Implement a Softmax classifier](./assignments/assignment1/softmax.ipynb)
