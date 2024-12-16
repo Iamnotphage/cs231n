@@ -51,6 +51,7 @@ $$
 根据损失函数的表达式，可以针对 $W$ 的具体一列来求导，比如 $\omega_j$ 或者 $\omega_{y_i}$ 
 
 $$
+
 \frac{\partial{L_i}}{\partial{\omega_j}} = \begin{pmatrix}
 
 \frac{\partial{L_i}}{\partial{\omega_{0j}}}\\
@@ -62,6 +63,7 @@ $$
 \frac{\partial{L_i}}{\partial{\omega_{Dj}}}\\
 
 \end{pmatrix}
+
 $$
 
 也就是说，$\frac{\partial{L_i}}{\partial{\omega_j}}$ 将会是一个D*1的列向量。
@@ -73,6 +75,7 @@ $$
 所以
 
 $$
+
 \frac{\partial{L_i}}{\partial{\omega_j}} = \begin{pmatrix}
 
 \frac{\partial{L_i}}{\partial{\omega_{0j}}}\\
@@ -99,6 +102,7 @@ $$
 接下来是求 $\frac{\partial{L_i}}{\partial{\omega_{y_i}}}$ 这里 $\omega_{y_i}$ 出现多次, 所以有
 
 $$
+
 \frac{\partial{L_i}}{\partial{\omega_{y_i}}} = \begin{pmatrix}
 
 \frac{\partial{L_i}}{\partial{\omega_{0y_i}}}\\
@@ -129,7 +133,9 @@ $$
 接下来推导`Softmax`的损失函数`cross-entropy loss`:
 
 $$
+
 L_i = -\log{\frac{e^{s_{y_i}}}{\Sigma_je^{s_j}}} = -\log{\frac{e^{x_i\omega_{y_i}}}{\Sigma_je^{x_i\omega_j}}} = -s_{y_i} + \log{\Sigma_je^{s_j}}
+
 $$
 
 (这里的最后一个等号的式子，在编程上可以减少误差积累 PS: log的底数这里为`e`)
@@ -143,5 +149,7 @@ $$
 $$
 
 $$
+
 \frac{\partial{L_i}}{\partial{\omega_{y_i}}} = x_i^T \cdot (\frac{e^{x_i\omega_{y_i}}}{\Sigma_je^{x_i\omega_j}} - 1)
+
 $$
