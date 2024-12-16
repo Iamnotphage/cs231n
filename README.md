@@ -44,7 +44,7 @@ $$
 L_i = \Sigma_{j \neq y_i}max(0, s_j - s_{y_i} + \Delta) = \Sigma_{j \neq y_i}max(0, x_i\omega_j - x_i\omega_{y_i} + \Delta)
 $$
 
-这里 $x_i$ 表示 $X$ 的第 $i$ 行，$\omega_j$ 表示 $W$ 的第 $j$ 列。
+这里 $x_i$ 表示 $X$ 的第 $i$ 行, $\omega_j$ 表示 $W$ 的第 $j$ 列。
 
 最终目的求 $L$ 对 $W$ 的梯度，相当于标量对矩阵求导。结果应该和 $W$ 是一样尺寸的 $dW$ 。根据 $L$ 的表达式，我们可以先求 $L_i$ 的梯度，再进行求和平均。
 
