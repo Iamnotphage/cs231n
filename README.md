@@ -50,7 +50,7 @@ $$
 
 根据损失函数的表达式，可以针对 $W$ 的具体一列来求导，比如 $\omega_j$ 或者 $\omega_{y_i}$ 
 
-$$
+```math
 \frac{\partial{L_i}}{\partial{\omega_j}} = \begin{pmatrix}
 
 \frac{\partial{L_i}}{\partial{\omega_{0j}}}\\
@@ -62,7 +62,7 @@ $$
 \frac{\partial{L_i}}{\partial{\omega_{Dj}}}\\
 
 \end{pmatrix}
-$$
+```
 
 也就是说，$\frac{\partial{L_i}}{\partial{\omega_j}}$ 将会是一个D*1的列向量。
 
