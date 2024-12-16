@@ -51,7 +51,6 @@ $$
 根据损失函数的表达式，可以针对 $W$ 的具体一列来求导，比如 $\omega_j$ 或者 $\omega_{y_i}$ 
 
 $$
-
 \frac{\partial{L_i}}{\partial{\omega_j}} = \begin{pmatrix}
 
 \frac{\partial{L_i}}{\partial{\omega_{0j}}}\\
@@ -63,7 +62,6 @@ $$
 \frac{\partial{L_i}}{\partial{\omega_{Dj}}}\\
 
 \end{pmatrix}
-
 $$
 
 也就是说，$\frac{\partial{L_i}}{\partial{\omega_j}}$ 将会是一个D*1的列向量。
@@ -75,7 +73,6 @@ $$
 所以
 
 $$
-
 \frac{\partial{L_i}}{\partial{\omega_j}} = \begin{pmatrix}
 
 \frac{\partial{L_i}}{\partial{\omega_{0j}}}\\
@@ -94,7 +91,6 @@ x_i^T & & {x_i\omega_j - x_i\omega_{y_i} + \Delta > 0}\\
 \\
 0 & & \text{otherwise}\\
 \end{array} \right.
-
 $$
 
 注意到 $x_i^T$ 是转置的向量，因为标量对向量求导保证 $\omega_j$ 的尺寸一致。
@@ -102,7 +98,6 @@ $$
 接下来是求 $\frac{\partial{L_i}}{\partial{\omega_{y_i}}}$ 这里 $\omega_{y_i}$ 出现多次, 所以有
 
 $$
-
 \frac{\partial{L_i}}{\partial{\omega_{y_i}}} = \begin{pmatrix}
 
 \frac{\partial{L_i}}{\partial{\omega_{0y_i}}}\\
@@ -123,7 +118,6 @@ x_i^T & & {x_i\omega_j - x_i\omega_{y_i} + \Delta > 0}\\
 \\
 0 & & \text{otherwise}\\
 \end{array} \right.
-
 $$
 
 每一个 $\frac{\partial{L_i}}{\partial{\omega_j}}$ 都是 $dW_i$ 的第 $j$ 列 （注意这里 $dW_i$ 是准备后续求和的一部分: $dW = \frac{1}{N}\Sigma_i dW_i + \lambda dR(W)$）
@@ -133,9 +127,7 @@ $$
 接下来推导`Softmax`的损失函数`cross-entropy loss`:
 
 $$
-
 L_i = -\log{\frac{e^{s_{y_i}}}{\Sigma_je^{s_j}}} = -\log{\frac{e^{x_i\omega_{y_i}}}{\Sigma_je^{x_i\omega_j}}} = -s_{y_i} + \log{\Sigma_je^{s_j}}
-
 $$
 
 (这里的最后一个等号的式子，在编程上可以减少误差积累 PS: log的底数这里为`e`)
@@ -143,13 +135,9 @@ $$
 分别对 $\omega_j$ 和 $\omega_{y_i}$ 求导
 
 $$
-
 \frac{\partial{L_i}}{\partial{\omega_j}} = - \frac{1}{\frac{e^{x_i\omega_{y_i}}}{\Sigma_je^{x_i\omega_j}}} \cdot (- \frac{x_i^T \cdot e^{x_i\omega_{y_i}} \cdot e^{x_i\omega_j}}{(\Sigma_je^{x_i\omega_j})^2}) = x_i^T \cdot \frac{e^{x_i\omega_j}}{\Sigma_je^{x_i\omega_j}}
-
 $$
 
 $$
-
 \frac{\partial{L_i}}{\partial{\omega_{y_i}}} = x_i^T \cdot (\frac{e^{x_i\omega_{y_i}}}{\Sigma_je^{x_i\omega_j}} - 1)
-
 $$
