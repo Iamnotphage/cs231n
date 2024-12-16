@@ -54,11 +54,11 @@ $$
 \frac{\partial{L_i}}{\partial{\omega_j}} = \begin{pmatrix}
 
 \frac{\partial{L_i}}{\partial{\omega_{0j}}}\\
-\\
+
 \frac{\partial{L_i}}{\partial{\omega_{1j}}}\\
-\\
+
 ...\\
-\\
+
 \frac{\partial{L_i}}{\partial{\omega_{Dj}}}\\
 
 \end{pmatrix}
