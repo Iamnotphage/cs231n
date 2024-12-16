@@ -64,15 +64,15 @@ $$
 \end{pmatrix}
 ```
 
-也就是说，$\frac{\partial{L_i}}{\partial{\omega_j}}$ 将会是一个D*1的列向量。
+也就是说, $\frac{\partial{L_i}}{\partial{\omega_j}}$ 将会是一个D*1的列向量。
 
 那么开始推导 $\frac{\partial{L_i}}{\partial{\omega_j}}$ 很显然，根据 $\Sigma_{j \neq y_i}max(0, x_i\omega_j - x_i\omega_{y_i} + \Delta)$ 这里面只出现了一次 $\omega_j$ 
 
-(注意这里的`j`是具体的一个数，写出 $\omega_0$ $\omega_1$ ... $\omega_j$ ... $\omega_C$ will help)
+(注意这里的`j`是具体的一个数，写出 $\omega_0$ $\omega_1$ ... $\omega_j$ ... $\omega_C$ will hlp)
 
 所以
 
-$$
+```math
 \frac{\partial{L_i}}{\partial{\omega_j}} = \begin{pmatrix}
 
 \frac{\partial{L_i}}{\partial{\omega_{0j}}}\\
@@ -91,13 +91,13 @@ x_i^T & & {x_i\omega_j - x_i\omega_{y_i} + \Delta > 0}\\
 \\
 0 & & \text{otherwise}\\
 \end{array} \right.
-$$
+```
 
 注意到 $x_i^T$ 是转置的向量，因为标量对向量求导保证 $\omega_j$ 的尺寸一致。
 
 接下来是求 $\frac{\partial{L_i}}{\partial{\omega_{y_i}}}$ 这里 $\omega_{y_i}$ 出现多次, 所以有
 
-$$
+```math
 \frac{\partial{L_i}}{\partial{\omega_{y_i}}} = \begin{pmatrix}
 
 \frac{\partial{L_i}}{\partial{\omega_{0y_i}}}\\
@@ -118,7 +118,7 @@ x_i^T & & {x_i\omega_j - x_i\omega_{y_i} + \Delta > 0}\\
 \\
 0 & & \text{otherwise}\\
 \end{array} \right.
-$$
+```
 
 每一个 $\frac{\partial{L_i}}{\partial{\omega_j}}$ 都是 $dW_i$ 的第 $j$ 列 （注意这里 $dW_i$ 是准备后续求和的一部分: $dW = \frac{1}{N}\Sigma_i dW_i + \lambda dR(W)$）
 
