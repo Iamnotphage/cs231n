@@ -26,7 +26,7 @@ CV入门
 
 一张图像一共有 $D$ 个像素，可以被分类为 $C$ 个类别，一共有 $N$ 个图片。
 
-权重矩阵 $W$ 是一个 $(D,C)$ 尺寸的矩阵
+权重矩阵 $W$ 是一个 $(D,C)$ 尺寸的矩阵, $\omega_{ij}$ 是矩阵的元素
 
 输入 $X$ 是一个 $(N,D)$ 尺寸的矩阵
 
@@ -38,15 +38,29 @@ $$
 L = \frac{1}{N}\Sigma_i^NL_i + \lambda R(W)
 $$
 
-对于`SVM`的损失函数`hinge loss`:
+我们的目的是求出 $\frac{\partial{L}}{\partial{W}}$
 
 $$
-L_i = \Sigma_{j \neq y_i}max(0, s_j - s_{y_i} + \Delta) = \Sigma_{j \neq y_i}max(0, x_i\omega_j - x_i\omega_{y_i} + \Delta)
+\frac{\partial{L}}{\partial{W}} = \frac{1}{N}\Sigma_i^N\frac{\partial{L_i}}{\partial{W}} + \lambda\frac{\partial{R(W)}}{\partial{W}}
 $$
 
-这里 $x_i$ 表示 $X$ 的第 $i$ 行, $\omega_j$ 表示 $W$ 的第 $j$ 列。
+最终目的求 $L$ 对 $W$ 的梯度，相当于标量对矩阵求导。结果应该和 $W$ 是一样尺寸的 $dW$ 。根据上面的表达式，我们可以先求 $L_i$ 的梯度，再进行求和平均。
 
-最终目的求 $L$ 对 $W$ 的梯度，相当于标量对矩阵求导。结果应该和 $W$ 是一样尺寸的 $dW$ 。根据 $L$ 的表达式，我们可以先求 $L_i$ 的梯度，再进行求和平均。
+那么问题就是如何求出 $\frac{\partial{L_i}}{\partial{W}}$
+
+```math
+\frac{\partial{L_i}}{\partial{W}} = \begin{pmatrix}
+
+\frac{\partial{L_i}}{\partial{\omega_{11}}} & \frac{\partial{L_i}}{\partial{\omega_{12}}} & \cdots & \frac{\partial{L_i}}{\partial{\omega_{1C}}}\\
+
+\frac{\partial{L_i}}{\partial{\omega_{21}}} & \frac{\partial{L_i}}{\partial{\omega_{22}}} & \cdots & \frac{\partial{L_i}}{\partial{\omega_{2C}}}\\
+
+\vdots & \vdots & \ddots & \vdots \\
+
+\frac{\partial{L_i}}{\partial{\omega_{D1}}} & \frac{\partial{L_i}}{\partial{\omega_{D2}}} & \cdots & \frac{\partial{L_i}}{\partial{\omega_{DC}}}\\
+
+\end{pmatrix}
+```
 
 根据损失函数的表达式，可以针对 $W$ 的具体一列来求导，比如 $\omega_j$ 或者 $\omega_{y_i}$ 
 
@@ -57,7 +71,7 @@ $$
 
 \frac{\partial{L_i}}{\partial{\omega_{1j}}}\\
 
-...\\
+\vdots\\
 
 \frac{\partial{L_i}}{\partial{\omega_{Dj}}}\\
 
@@ -65,6 +79,16 @@ $$
 ```
 
 也就是说, $\frac{\partial{L_i}}{\partial{\omega_j}}$ 将会是一个D*1的列向量。
+
+---
+
+对于`SVM`的损失函数`hinge loss`:
+
+$$
+L_i = \Sigma_{j \neq y_i}max(0, s_j - s_{y_i} + \Delta) = \Sigma_{j \neq y_i}max(0, x_i\omega_j - x_i\omega_{y_i} + \Delta)
+$$
+
+这里 $x_i$ 表示 $X$ 的第 $i$ 行, $\omega_j$ 表示 $W$ 的第 $j$ 列。
 
 那么开始推导 $\frac{\partial{L_i}}{\partial{\omega_j}}$ 很显然，根据 $\Sigma_{j \neq y_i}max(0, x_i\omega_j - x_i\omega_{y_i} + \Delta)$ 这里面只出现了一次 $\omega_j$ 
 
@@ -79,7 +103,7 @@ $$
 \\
 \frac{\partial{L_i}}{\partial{\omega_{1j}}}\\
 \\
-...\\
+\vdots\\
 \\
 \frac{\partial{L_i}}{\partial{\omega_{Dj}}}\\
 
@@ -104,7 +128,7 @@ x_i^T & & {x_i\omega_j - x_i\omega_{y_i} + \Delta > 0}\\
 \\
 \frac{\partial{L_i}}{\partial{\omega_{1y_i}}}\\
 \\
-...\\
+\vdots\\
 \\
 \frac{\partial{L_i}}{\partial{\omega_{Dy_i}}}\\
 
