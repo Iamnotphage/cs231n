@@ -20,6 +20,14 @@ CV入门
 
 # Notes
 
+这里放一些笔记。主要是矩阵代数相关的内容。
+
+下面会涉及到大量的**标量对向量求导**, **向量对向量求导**, **矩阵对矩阵求导** 等内容。
+
+推荐文章: [求导布局](https://zhuanlan.zhihu.com/p/263777564), [cs231n-linear-backprop](https://cs231n.stanford.edu/2017/handouts/linear-backprop.pdf)
+
+---
+
 简单推导一下`SVM`和`Softmax`的损失函数对权重矩阵`W`的梯度。
 
 首先明确一些符号。
@@ -29,6 +37,8 @@ CV入门
 权重矩阵 $W$ 是一个 $(D,C)$ 尺寸的矩阵, $\omega_{ij}$ 是矩阵的元素
 
 输入 $X$ 是一个 $(N,D)$ 尺寸的矩阵
+
+所以 $S = XW$ 是一个尺寸为 $(N,C)$ 的矩阵，某一行 $s_j$ 代表 $x_i$ 在权重矩阵下的得分
 
 输入 $y$ 是对应输入 $X$ 的正确分类的标签，尺寸为 $(N,)$
 
@@ -67,9 +77,9 @@ $$
 ```math
 \frac{\partial{L_i}}{\partial{\omega_j}} = \begin{pmatrix}
 
-\frac{\partial{L_i}}{\partial{\omega_{0j}}}\\
-
 \frac{\partial{L_i}}{\partial{\omega_{1j}}}\\
+
+\frac{\partial{L_i}}{\partial{\omega_{2j}}}\\
 
 \vdots\\
 
@@ -99,9 +109,9 @@ $$
 ```math
 \frac{\partial{L_i}}{\partial{\omega_j}} = \begin{pmatrix}
 
-\frac{\partial{L_i}}{\partial{\omega_{0j}}}\\
-\\
 \frac{\partial{L_i}}{\partial{\omega_{1j}}}\\
+\\
+\frac{\partial{L_i}}{\partial{\omega_{2j}}}\\
 \\
 \vdots\\
 \\
@@ -124,9 +134,9 @@ x_i^T & & {x_i\omega_j - x_i\omega_{y_i} + \Delta > 0}\\
 ```math
 \frac{\partial{L_i}}{\partial{\omega_{y_i}}} = \begin{pmatrix}
 
-\frac{\partial{L_i}}{\partial{\omega_{0y_i}}}\\
-\\
 \frac{\partial{L_i}}{\partial{\omega_{1y_i}}}\\
+\\
+\frac{\partial{L_i}}{\partial{\omega_{2y_i}}}\\
 \\
 \vdots\\
 \\
