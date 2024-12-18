@@ -28,7 +28,8 @@ def affine_forward(x, w, b):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    x_reshaped = x.reshape((x.shape[0], -1))
+    out = x_reshaped.dot(w) + b.reshape((1, w.shape[1]))
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -61,7 +62,10 @@ def affine_backward(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    x_reshaped = x.reshape((x.shape[0], -1))
+    dx = dout.dot(w.T).reshape(x.shape)
+    dw = (x_reshaped.T).dot(dout)
+    db = (dout.T).dot(np.ones((dout.shape[0])))
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -87,7 +91,7 @@ def relu_forward(x):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    out = np.maximum(0, x) # 注意np.max()与np.maximum()的区别
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -114,7 +118,10 @@ def relu_backward(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    dx = dout * (x > 0) # 注意 * 和 .dot 区别 这里是elemnt-wise的乘法
+
+    # 因为max(0, -)求导，理应是X中大于0的元素导数为1，其余为0
+    # [local gradient] * [upstream gradient]
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -773,7 +780,20 @@ def svm_loss(x, y):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    num_classes = x.shape[1]
+    num_train = x.shape[0]
+
+    # loss
+    correct_class_score = x[np.arange(num_train), y].reshape((num_train, 1))
+    margin = np.maximum(0, x - correct_class_score + 1)
+    margin[np.arange(num_train), y] = 0
+    loss = np.sum(margin) / num_train
+
+    # gradient of the loss with respect to x
+    margin[margin > 0] = 1
+    valid_margin_count = margin.sum(axis=1)
+    margin[np.arange(num_train), y] -= valid_margin_count
+    dx = margin / num_train
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -803,8 +823,21 @@ def softmax_loss(x, y):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    num_classes = x.shape[1]
+    num_train = x.shape[0]
 
+    # loss
+    # shift for calculate
+    scores = x - np.max(x, axis = 1).reshape(-1, 1)
+    # 计算出所有 e^s_ij / sum(e^s_ij)
+    portion = np.exp(scores) / np.sum(np.exp(scores), axis = 1).reshape(-1,1)
+    # 挑出 y_i
+    loss = -np.sum(np.log(portion[range(num_train), list(y)]))
+    loss /= num_train
+
+    # gradient of the loss withe respect to x
+    portion[range(num_train), list(y)] += -1
+    dx = portion / num_train
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
     #                             END OF YOUR CODE                            #

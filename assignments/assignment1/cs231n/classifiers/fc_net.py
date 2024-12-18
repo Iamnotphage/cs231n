@@ -55,7 +55,10 @@ class TwoLayerNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        self.params['W1'] = np.random.normal(0, weight_scale, (input_dim, hidden_dim))
+        self.params['b1'] = np.zeros((hidden_dim,))
+        self.params['W2'] = np.random.normal(0, weight_scale, (hidden_dim, num_classes))
+        self.params['b2'] = np.zeros((num_classes,))
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -88,8 +91,11 @@ class TwoLayerNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
-
+        # first affine layer & ReLU activation function
+        out1, cache1 = affine_relu_forward(X, self.params['W1'], self.params['b1'])
+        # second affine layer
+        scores, cache2 = affine_forward(out1, self.params['W2'], self.params['b2'])
+        
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
         #                             END OF YOUR CODE                             #
@@ -112,7 +118,21 @@ class TwoLayerNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        # loss
+        loss, dscores = softmax_loss(scores, y)
+        loss = loss + 0.5 * self.reg * np.sum(self.params['W2'] * self.params['W2'])
+        loss = loss + 0.5 * self.reg * np.sum(self.params['W1'] * self.params['W1'])
+
+        # gradient
+        # affine + ReLU -> affine -> loss function(softmax)
+        # 所以有
+        # XW1+b1 + max(0,-) -> HW2+b2 -> softmax scores
+        # (dX,dW1,db1) <- (dH,dW2,db2) <- dscores
+        dH, grads['W2'], grads['b2'] = affine_backward(dscores, cache2)
+        dX, grads['W1'], grads['b1'] = affine_relu_backward(dH, cache1)
+
+        grads['W1'] += self.reg * self.params['W1']
+        grads['W2'] += self.reg * self.params['W2']
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
