@@ -18,6 +18,8 @@ CV入门
 
 [Q3: Implement a Softmax classifier](./assignments/assignment1/softmax.ipynb)
 
+[Q4: Two-Layer Neural Network](./assignments/assignment1/two_layer_net.ipynb)
+
 # Notes
 
 这里放一些笔记。主要是矩阵代数相关的内容。
