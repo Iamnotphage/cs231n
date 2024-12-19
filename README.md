@@ -20,6 +20,8 @@ CV入门
 
 [Q4: Two-Layer Neural Network](./assignments/assignment1/two_layer_net.ipynb)
 
+[Q5: Higher Level Representations: Image Features](./assignments/assignment1/features.ipynb)
+
 # Notes
 
 这里放一些笔记。主要是矩阵代数相关的内容。
