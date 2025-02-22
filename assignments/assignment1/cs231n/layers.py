@@ -118,7 +118,7 @@ def relu_backward(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    dx = dout * (x > 0) # 注意 * 和 .dot 区别 这里是elemnt-wise的乘法
+    dx = dout * (x > 0) # 注意 * 和 .dot 区别 这里是element-wise的乘法
 
     # 因为max(0, -)求导，理应是X中大于0的元素导数为1，其余为0
     # [local gradient] * [upstream gradient]

@@ -22,6 +22,12 @@ CV入门
 
 [Q5: Higher Level Representations: Image Features](./assignments/assignment1/features.ipynb)
 
+## Assignment 2
+
+> Fully-Connected Nets, Batch Normalization, Dropout, Convolutional Nets, Network Visualization
+
+[Q1: Multi-Layer Fully Connected Neural Networks](./assignments/assignment2/)
+
 # Notes
 
 这里放一些笔记。主要是矩阵代数相关的内容。
@@ -179,3 +185,51 @@ $$
 $$
 \frac{\partial{L_i}}{\partial{\omega_{y_i}}} = x_i^T \cdot (\frac{e^{x_i\omega_{y_i}}}{\Sigma_je^{x_i\omega_j}} - 1)
 $$
+
+顺带一提，`assignment 2`中有一个`softmax_loss()`函数需要计算`loss`对`scores`的求导。
+
+这里根据上面的结论以及 $s_j = x_i\omega_j$ 这个式子可以得到:
+
+$$
+\frac{\partial{L_i}}{\partial{s_j}} = \frac{\partial{L_i}}{\partial{\omega_j}} \cdot \frac{\partial{\omega_j}}{\partial{s_j}} = \frac{e^{x_i\omega_j}}{\Sigma_je^{x_i\omega_j}}
+$$
+
+如果 $j = y_i$ 的话，那就是:
+
+$$
+\frac{\partial{L_i}}{\partial{s_{y_i}}} = \frac{e^{x_i\omega_{y_i}}}{\Sigma_je^{x_i\omega_j}} - 1
+$$
+
+所以在`softmax_loss()`这里面我是这样写的:
+
+```python
+def softmax_loss(x, y):
+    """Computes the loss and gradient for softmax classification.
+
+    Inputs:
+    - x: Input data, of shape (N, C) where x[i, j] is the score for the jth
+      class for the ith input.
+    - y: Vector of labels, of shape (N,) where y[i] is the label for x[i] and
+      0 <= y[i] < C
+
+    Returns a tuple of:
+    - loss: Scalar giving the loss
+    - dx: Gradient of the loss with respect to x
+    """
+    loss, dx = None, None
+    loss = 0.0
+    N = x.shape[0]
+
+    # shift消除累计误差
+    # 设P为概率Probability = softmax(x)
+    P = np.exp(x - x.max(axis = 1)).reshape(N, -1)
+    P /= P.sum(axis = 1)
+    loss += - np.log(P[range(N), y]).sum() / N
+    # loss对score求导 这里scores是x
+    P[range(N), y] -= 1
+    dx = P / N
+
+    return loss, dx
+```
+
+---
