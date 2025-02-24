@@ -36,7 +36,7 @@ CV入门
 
 推荐文章: [求导布局](https://zhuanlan.zhihu.com/p/263777564), [cs231n-linear-backprop](https://cs231n.stanford.edu/2017/handouts/linear-backprop.pdf)
 
----
+## 损失函数对权重矩阵求导
 
 简单推导一下`SVM`和`Softmax`的损失函数对权重矩阵`W`的梯度。
 
@@ -100,7 +100,7 @@ $$
 
 也就是说, $\frac{\partial{L_i}}{\partial{\omega_j}}$ 将会是一个D*1的列向量。
 
----
+## SVM损失函数求导
 
 对于`SVM`的损失函数`hinge loss`:
 
@@ -166,7 +166,7 @@ x_i^T & & {x_i\omega_j - x_i\omega_{y_i} + \Delta > 0}\\
 
 每一个 $\frac{\partial{L_i}}{\partial{\omega_j}}$ 都是 $dW_i$ 的第 $j$ 列 （注意这里 $dW_i$ 是准备后续求和的一部分: $dW = \frac{1}{N}\Sigma_i dW_i + \lambda dR(W)$）
 
----
+## Softmax损失函数求导
 
 接下来推导`Softmax`的损失函数`cross-entropy loss`:
 
@@ -232,4 +232,26 @@ def softmax_loss(x, y):
     return loss, dx
 ```
 
----
+## Momentum Update 理解
+
+一般的SGD (Vanilla SGD)就只是最简单的将位置减去梯度而已:
+
+```python
+x = x - learning_rate * dw
+```
+
+而**Momentum**方法则是:
+
+```python
+v = mu * v - learning_rate * dx
+x = x + v
+```
+
+可以理解为:
+
+> 将粒子放入目标函数(也就是损失函数)表示的“山坡”上，初速度为v，在山坡上，梯度的方向是山坡增长最快的方向，也就是粒子在此处将受到与梯度相反的作用力，驱使粒子向下运动，同时因为自身的惯性(动量系数mu)，更加平滑地到达低处。
+
+`x`就表示粒子所在的位置，`v`表示粒子的速度
+
+在实际中，一般用`w`权重矩阵来表示粒子在`loss function`的`位置`
+
