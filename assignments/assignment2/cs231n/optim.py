@@ -69,7 +69,8 @@ def sgd_momentum(w, dw, config=None):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    v = config["momentum"] * v - config["learning_rate"] * dw
+    next_w = w + v
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -107,7 +108,10 @@ def rmsprop(w, dw, config=None):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    cache = config["cache"]
+    cache = config["decay_rate"] * cache + (1 - config["decay_rate"]) * dw ** 2
+    next_w = w - config["learning_rate"] * dw / (np.sqrt(cache) + config["epsilon"])
+    config["cache"] = cache
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -152,7 +156,24 @@ def adam(w, dw, config=None):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    # get parameters
+    m = config["m"]
+    v = config["v"]
+    t = config["t"]
+    config["t"] = t = t + 1
+
+    # Adam Update Rules
+    m = config["beta1"] * m + (1 - config["beta1"]) * dw
+    mt = m / (1 - config["beta1"] ** t)
+
+    v = config["beta2"] * v + (1 - config["beta2"]) * (dw ** 2)
+    vt = v / (1 - config["beta2"] ** t)
+
+    next_w = w - config["learning_rate"] * mt / (np.sqrt(vt) + config["epsilon"])
+
+    # update config
+    config["m"] = m
+    config["v"] = v
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################

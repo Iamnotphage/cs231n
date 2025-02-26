@@ -25,7 +25,8 @@ def affine_forward(x, w, b):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    x_reshaped = x.reshape((x.shape[0], -1)) # shape (N, D)
+    out = x_reshaped.dot(w) + b.reshape((1, w.shape[1]))
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -57,7 +58,10 @@ def affine_backward(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    x_reshaped = x.reshape((x.shape[0], -1)) # shape (N, D)
+    dx = dout.dot(w.T).reshape(x.shape) # Y = XW + b, 所以这里求导是 dG/dx = W.T 再乘上游gradient
+    dw = (x_reshaped.T).dot(dout) # 同上
+    db = (dout.T).dot(np.ones((dout.shape[0]))) # dG/db应该是(M, ) (M,N)*(N, )
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -82,7 +86,7 @@ def relu_forward(x):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    out = np.maximum(0, x) # 注意np.max()是取出最大值，而np.maximum用于逐个元素比较
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -108,7 +112,10 @@ def relu_backward(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    dx = dout * (x > 0) # 这里的 * 是element-wise的乘法
+
+    # out = max(0, -) 求导，应该是X中大于0的元素为1，其余导数为0
+    # 所以对应dout中的元素，如果x > 0，那么dout才取值
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -136,9 +143,21 @@ def softmax_loss(x, y):
     # TODO: Copy over your solution from Assignment 1.                        #
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+    loss = 0.0
+    N = x.shape[0]
 
-    pass
+    # shift消除累计误差
+    # 设P为概率Probability = softmax(x)
+    P = np.exp(x - x.max(axis = 1).reshape(N, -1)).reshape(N, -1)
+    P /= P.sum(axis = 1).reshape(N, -1)
+    loss += - np.log(P[range(N), y]).sum() / N
+    # loss对score求导 这里scores是x
+    # 参考softmax对W求导: W权重，X输入向量，P为概率
+    # dloss/dw = X.T * (P - 1) 或者 X.T * P 取决于j是否等于y_i
+    P[range(N), y] -= 1
+    dx = P / N
 
+  
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
     #                             END OF YOUR CODE                            #
