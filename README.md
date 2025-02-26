@@ -28,6 +28,8 @@ CV入门
 
 [Q1: Multi-Layer Fully Connected Neural Networks](./assignments/assignment2/FullyConnectedNets.ipynb)
 
+[Q2: Batch Normalization](./assignments/assignment2/BatchNormalization.ipynb)
+
 # Notes
 
 这里放一些笔记。主要是矩阵代数相关的内容。
