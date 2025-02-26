@@ -26,7 +26,7 @@ CV入门
 
 > Fully-Connected Nets, Batch Normalization, Dropout, Convolutional Nets, Network Visualization
 
-[Q1: Multi-Layer Fully Connected Neural Networks](./assignments/assignment2/)
+[Q1: Multi-Layer Fully Connected Neural Networks](./assignments/assignment2/FullyConnectedNets.ipynb)
 
 # Notes
 
