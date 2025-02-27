@@ -314,3 +314,19 @@ ps: 推荐取值为
 eps = 10^{-8}\\
 \end{array} \right.
 ```
+
+## Batch Norm
+
+关于Normalization很简单，就是数据减去其均值再除其标准差。
+
+**Batch Normalization**的理解可以参考[这篇文章](https://towardsdatascience.com/batch-norm-explained-visually-how-it-works-and-why-neural-networks-need-it-b18919692739/)，此外这是[参考论文](https://arxiv.org/pdf/1502.03167)。其实看完文章基本就掌握了。
+
+简单来说就是在两个隐藏层中间夹一层`Batch Norm`层
+
+在训练阶段，`Batch Norm`层接受来自`Activation`层的输出，首先计算这个`Mini-Batch`的均值和标准差，然后将整个数据**normalize**，然后再进行**Scale & Shift**。同时更新`Moving Average`(后续推理阶段使用)
+
+> At training time, such a layer uses a minibatch of data to estimate the mean and standard deviation of each feature. These estimated means and standard deviations are then used to center and normalize the features of the minibatch. A running average of these means and standard deviations is kept during training, and at test time these running averages are used to center and normalize features.
+
+![batchnorm_graph](./assignments/assignment2/cs231n/notebook_images/batchnorm_graph.png)
+
+ 
