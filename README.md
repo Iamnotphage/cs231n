@@ -34,6 +34,8 @@ CV入门
 
 这里放一些笔记。主要是矩阵代数相关的内容。
 
+个人整理的[笔记](https://iamnotphage.github.io/blog/2025/%E7%9F%A9%E9%98%B5%E4%B9%98%E6%B3%95%E7%AC%A6%E5%8F%B7%E5%92%8CNumpy%E8%A7%A3%E9%87%8A/)，整理了关于各类向量和矩阵乘法以及对应`numpy`的API
+
 下面会涉及到大量的**标量对向量求导**, **向量对向量求导**, **矩阵对矩阵求导** 等内容。
 
 推荐文章: [求导布局](https://zhuanlan.zhihu.com/p/263777564), [cs231n-linear-backprop](https://cs231n.stanford.edu/2017/handouts/linear-backprop.pdf)
@@ -114,7 +116,7 @@ $$
 
 那么开始推导 $\frac{\partial{L_i}}{\partial{\omega_j}}$ 很显然，根据 $\Sigma_{j \neq y_i}max(0, x_i\omega_j - x_i\omega_{y_i} + \Delta)$ 这里面只出现了一次 $\omega_j$ 
 
-(注意这里的`j`是具体的一个数，写出 $\omega_0$ $\omega_1$ ... $\omega_j$ ... $\omega_C$ will hlp)
+(注意这里的`j`是具体的一个数，写出 $\omega_0$ $\omega_1$ ... $\omega_j$ ... $\omega_C$ will help)
 
 所以
 
