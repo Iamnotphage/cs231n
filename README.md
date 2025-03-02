@@ -384,6 +384,8 @@ $X$ 和 $\hat{X}$ 以及 $Y$ 都是 (N,D) 的矩阵。 $\gamma$ 和 $\beta$ 这�
 根据计算图，有:
 
 ```math
+\begin{aligned}
+
 \mu = \frac{1}{N}\sum_{k=1}^NX_k
 \\
 v = \frac{1}{N}\sum_{k=1}^N(X_k - \mu)^2
@@ -393,6 +395,8 @@ v = \frac{1}{N}\sum_{k=1}^N(X_k - \mu)^2
 \hat{X_i} = \frac{X_i - \mu}{\sigma}
 \\
 Y_i = \gamma \bigodot \hat{X_i} + \beta
+
+\end{aligned}
 ```
 
 这里需要注意两点:
@@ -436,6 +440,8 @@ Y_i = \gamma \bigodot \hat{X_i} + \beta
 **第一个方法**: 逐个元素求导，也就是穷举出所有的组合，然后组成一个矩阵(这里不用太纠结分子布局还是分母布局)
 
 ```math
+\begin{aligned}
+
 Y_i = \gamma \bigodot \hat{X_i} + \beta = 
 
 \begin{pmatrix} y_{i1} \\ y_{i2} \\ y_{i3} \\ \vdots \\ y_{iD} \end{pmatrix}^T = 
@@ -479,6 +485,8 @@ Y_i = \gamma \bigodot \hat{X_i} + \beta =
 0 & 0 & \cdots & 1
 
 \end{pmatrix} = I_D
+
+\end{aligned}
 ```
 
 实际上: $\frac{\partial{y_{ij}}}{\partial{\beta_k}} = 1$ 当且仅当 $j = k$ 
@@ -592,6 +600,8 @@ x_{i1} & 0 & \cdots & 0
 所以:
 
 ```math
+\begin{aligned}
+
 \frac{\partial{Y_i}}{\partial{\gamma}} = \text{diag}(\hat{X_i}) = 
 
 \begin{pmatrix}
@@ -613,6 +623,8 @@ x_{i1} & 0 & \cdots & 0
 \\
 
 \frac{\partial{L}}{\partial{\gamma}} = \sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}}\frac{\partial{Y_i}}{\partial{\gamma}} = \sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}} \text{diag}(\hat{X_i}) = \sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}} \circ \hat{X_i}
+
+\end{aligned}
 ```
 
 最后乘对角阵就相当于和 $\hat{X_i}$ 逐个元素相乘(Hadamard乘积)
