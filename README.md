@@ -425,7 +425,7 @@ Y_i = \gamma \bigodot \hat{X_i} + \beta
 
 我在这里卡了非常非常久，后面发现其实很简单！
 
-因为本质上 $L = f(Y_1, Y_2, Y_3, \dots, Y_N)$ 是 $Y_i$ 的函数。也就是多个变量的函数，只是在计算的时候利用了`numpy`的广播机制才写出来`out = gamma * x_hat + beta`的代码，实际上是每一个 $Y_i = \gamma \bigodot \hat{X_i} + \beta$，然后多个 $Y_i$ 组合成一个矩阵 $Y$ 再交给下游的 $f$ 处理。但是下游 $f$ 实际上也只是处理 $Y_i$ 而已。
+因为本质上 $L = f(Y_1, Y_2, Y_3, \dots, Y_N)$ 是 $Y_i$ 的函数。也就是多个变量的函数，只是在计算的时候利用了`numpy`的广播机制才写出来`out = gamma * x_hat + beta`的代码，实际上是每一个 $Y_i = \gamma \bigodot \hat{X_i} + \beta$，然后多个 $Y_i$ 组合成一个矩阵 $Y$ 再交给下游的 $f$ 处理。但是下游 $f$ 实际上也只是处理 $Y_i$ 而已。(**because we’re working with batches!**)
 
 所以根据上面的关于 $L = f(Y_i)$ 的理解:
 
@@ -633,22 +633,184 @@ x_{i1} & 0 & \cdots & 0
 
 求 $\frac{\partial{L}}{\partial{X}}$ 时，同样的道理。因为每次传播只是对多个样本进行运算，也就是每次计算一个 $X_i$ 。只不过实际写代码时可以直接将 $X_i$ 组合成矩阵 $X$。所以我们得推导 $\frac{\partial{L}}{\partial{X_i}}$。
 
-因为 $L = f(Y_1, Y_2, Y_3, \dots, Y_N)$ 是 $Y_i$ 的函数。而 $Y_i$ 跟 $\gamma$, $\hat{X_i}$, $\beta$ 有关系
+在进行之前，我已经尝试过非常多的方法来计算，接下来展示最清晰的一种方法。
 
-求 $\frac{\partial{L}}{\partial{\gamma}}$ 和 $\frac{\partial{L}}{\partial{\beta}}$ 时，因为每个 $Y_i$ 的 $\gamma$ 和 $\beta$ 都是一样的，所以要每个 $Y_i$ 都求导最后求和。
-
-而求 $\frac{\partial{L}}{\partial{X_i}}$ 时，比如 $\frac{\partial{L}}{\partial{X_3}}$ 只和 $Y_3$ 有关系，所以可以直接写
+首先让我们构造一个层次结构，假想在脑中有这样的函数:
 
 ```math
-\frac{\partial{L}}{\partial{X_i}} = \frac{\partial{L}}{\partial{Y_i}} \frac{\partial{Y_i}}{\partial{X_i}}
+\begin{aligned}
+
+L(Y_i)
+
+\\
+
+Y_i(\hat{X_i}, \beta, \gamma)
+
+\\
+
+\hat{X_i}(X_i, \mu, v)
+
+\end{aligned}
 ```
 
-当然也可以理解为: 因为其余项和 $X_i$ 没关系，所以导数为 $0$ 最后求和仍然是单项:
+在前面，我们已经计算出来的，或者已经知道的变量有:
 
 ```math
-\frac{\partial{L}}{\partial{X_i}} = \frac{\partial{L}}{\partial{Y_1}} \frac{\partial{Y_1}}{\partial{X_i}} + \frac{\partial{L}}{\partial{Y_2}} \frac{\partial{Y_2}}{\partial{X_i}} + \dots + \frac{\partial{L}}{\partial{Y_i}} \frac{\partial{Y_i}}{\partial{X_i}} + \dots + \frac{\partial{L}}{\partial{Y_N}} \frac{\partial{Y_N}}{\partial{X_i}} = \frac{\partial{L}}{\partial{Y_i}} \frac{\partial{Y_i}}{\partial{X_i}}
+\begin{aligned}
+
+\frac{\partial{L}}{\partial{Y_i}}\\
+
+\frac{\partial{L}}{\partial{\beta}} &= \sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}}\\
+
+\frac{\partial{L}}{\partial{\gamma}} &= \sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}} \circ \hat{X_i}
+
+\end{aligned}
 ```
 
-于是，我们的问题转而求 $\frac{\partial{L}}{\partial{X_i}}$
+并且很容易得到 $\frac{\partial{L}}{\partial{\hat{X_i}}} = \frac{\partial{L}}{\partial{Y_i}} \circ \gamma$
 
- 
+也就是说 第二层的 $Y_i(\hat{X_i}, \beta, \gamma)$ 全部偏导数都知道了。
+
+接下来考虑第三层的全部偏导数 先从 $\mu$ 开始(注意 $v$ 是关于 $\mu$ 的函数):
+
+```math
+\frac{\partial{L}}{\partial{\mu}} = \sum_{i=1}^{N}\frac{\partial{L}}{\partial{\hat{X_i}}} \frac{\partial{\hat{X_i}}}{\partial{\mu}} + \frac{\partial{L}}{\partial{v}} \frac{\partial{v}}{\partial{\mu}}
+```
+
+由于
+
+```math
+\begin{aligned}
+\hat{X_i} &= \frac{X_i - \mu}{\sigma}\\
+
+v &= \frac{1}{N}\sum_{k=1}^N(X_k - \mu)^2
+\end{aligned}
+```
+
+得到
+
+```math
+\begin{aligned}
+\frac{\partial{\hat{X_i}}}{\partial{\mu}} &= \frac{-1}{\sqrt{v + \epsilon}}\\
+
+\frac{\partial{v}}{\partial{\mu}} &= -\frac{1}{N} \sum_{i = 1}^N2(X_i - \mu)
+
+\end{aligned}
+```
+
+此时还有一个 $\frac{\partial{L}}{\partial{v}}$ 不知道, 不过这是下一步的内容
+
+然后我们来求对 $v$ 的偏导数
+
+```math
+\frac{\partial{L}}{\partial{v}} = \sum_{i=1}^{N}\frac{\partial{L}}{\partial{\hat{X_i}}} \frac{\partial{\hat{X_i}}}{\partial{v}}
+```
+
+$L$ 对 $\hat{X_i}$ 的偏导是知道的，我们只要算后面的那一个
+
+由于
+
+```math
+\hat{X_i} = \frac{X_i - \mu}{\sqrt{v + \epsilon}}
+```
+
+所以
+
+```math
+\frac{\partial{L}}{\partial{v}} = -\frac{1}{2}\sum_{i=1}^{N}\frac{\partial{L}}{\partial{\hat{X_i}}}(X_i - \mu)\cdot(v + \epsilon)^{-\frac{3}{2}}
+```
+
+组合一下前面的结果，把 $\frac{\partial{L}}{\partial{\mu}}$ 求出来
+
+```math
+\frac{\partial{L}}{\partial{\mu}} = -\sum_{i=1}^{N}\frac{\partial{L}}{\partial{\hat{X_i}}}\cdot\frac{1}{\sqrt{v + \epsilon}} - \frac{\partial{L}}{\partial{v}}\frac{2}{N}\sum_{i=1}^{N}(X_i - \mu)
+```
+
+来吧，已经求完了对 $\mu$ 和 $v$ 的偏导。就差最后的 $X_i$
+
+```math
+\frac{\partial{L}}{\partial{X_i}} = \frac{\partial{L}}{\partial{\hat{X_i}}} \cdot \frac{\partial{\hat{X_i}}}{\partial{X_i}} + \frac{\partial{L}}{\partial{\mu}} \cdot \frac{\partial{\mu}}{\partial{X_i}} + \frac{\partial{L}}{\partial{v}} \cdot \frac{\partial{v}}{\partial{X_i}}
+```
+
+需要的内容有 $\frac{\partial{\hat{X_i}}}{\partial{X_i}}$, $\frac{\partial{\mu}}{\partial{X_i}}$ 和 $\frac{\partial{v}}{\partial{X_i}}$
+
+```math
+\begin{aligned}
+
+\frac{\partial{\hat{X_i}}}{\partial{X_i}} &= \frac{1}{\sqrt{v + \epsilon}}
+
+\\
+
+\frac{\partial{\mu}}{\partial{X_i}} &= \frac{1}{N}
+
+\\
+
+\frac{\partial{v}}{\partial{X_i}} &= \frac{2}{N} (X_i - \mu)
+
+\end{aligned}
+```
+
+所以!
+
+```math
+\begin{aligned}
+
+\frac{\partial{L}}{\partial{X_i}} &= 
+
+\frac{\partial{L}}{\partial{\hat{X_i}}} \cdot \frac{1}{\sqrt{v + \epsilon}} 
+
++ 
+
+\frac{\partial{L}}{\partial{\mu}} \cdot \frac{1}{N}
+
++ 
+
+\frac{\partial{L}}{\partial{v}} \cdot \frac{2}{N} (X_i - \mu)
+
+\\
+\\
+
+&= \frac{N \frac{\partial{L}}{\partial{\hat{X_i}}} - \sum_{i=1}^{N}\frac{\partial{L}}{\partial{\hat{X_i}}} - \hat{X_i}\sum_{i=1}^{N}\frac{\partial{L}}{\partial{\hat{X_i}}}\cdot \hat{X_i}
+
+}{N\sqrt{v + \epsilon}}
+
+\end{aligned}
+```
+
+太累人了。
+
+---
+
+综上，`Batch Norm`反向传播的导数为:
+
+```math
+\begin{aligned}
+\frac{\partial{L}}{\partial{X_i}} &= 
+
+\frac{\partial{L}}{\partial{\hat{X_i}}} \cdot \frac{1}{\sqrt{v + \epsilon}} 
+
++ 
+
+\frac{\partial{L}}{\partial{\mu}} \cdot \frac{1}{N}
+
++ 
+
+\frac{\partial{L}}{\partial{v}} \cdot \frac{2}{N} (X_i - \mu)
+
+\\
+\\
+
+&= \frac{N \frac{\partial{L}}{\partial{\hat{X_i}}} - \sum_{i=1}^{N}\frac{\partial{L}}{\partial{\hat{X_i}}} - \hat{X_i}\sum_{i=1}^{N}\frac{\partial{L}}{\partial{\hat{X_i}}}\cdot \hat{X_i}
+
+}{N\sqrt{v + \epsilon}}
+
+\\
+
+\frac{\partial{L}}{\partial{\beta}} &= \sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}}
+
+\\
+
+\frac{\partial{L}}{\partial{\gamma}} &=  \sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}} \circ \hat{X_i}
+
+\end{aligned}
+```
