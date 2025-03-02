@@ -34,11 +34,11 @@ CV入门
 
 这里放一些笔记。主要是矩阵代数相关的内容。
 
-个人整理的[笔记](https://iamnotphage.github.io/blog/2025/%E7%9F%A9%E9%98%B5%E4%B9%98%E6%B3%95%E7%AC%A6%E5%8F%B7%E5%92%8CNumpy%E8%A7%A3%E9%87%8A/)，整理了关于各类向量和矩阵乘法以及对应`numpy`的API
+个人整理的[笔记](https://iamnotphage.github.io/blog/2025/%E7%9F%A9%E9%98%B5%E4%B9%98%E6%B3%95%E7%AC%A6%E5%8F%B7%E5%92%8CNumpy%E8%A7%A3%E9%87%8A/)，整理了关于**各类向量和矩阵乘法**以及对应`numpy`的API
 
 下面会涉及到大量的**标量对向量求导**, **向量对向量求导**, **矩阵对矩阵求导** 等内容。
 
-推荐文章: [求导布局](https://zhuanlan.zhihu.com/p/263777564), [cs231n-linear-backprop](https://cs231n.stanford.edu/2017/handouts/linear-backprop.pdf)
+推荐文章: [矩阵求导术(上)](https://zhuanlan.zhihu.com/p/24709748),[矩阵求导术(下)](https://zhuanlan.zhihu.com/p/24863977), [cs231n-linear-backprop](https://cs231n.stanford.edu/2017/handouts/linear-backprop.pdf)
 
 ## 损失函数对权重矩阵求导
 
@@ -331,4 +331,289 @@ eps = 10^{-8}\\
 
 ![batchnorm_graph](./assignments/assignment2/cs231n/notebook_images/batchnorm_graph.png)
 
- 
+最复杂的是推导Batch Norm反向传播的一系列矩阵
+
+先规定一些符号:
+
+```math
+
+X = \begin{pmatrix}
+
+X_1\\
+
+X_2
+\\
+\vdots\\
+
+X_N
+
+\end{pmatrix}
+,
+X_i = \begin{bmatrix} x_{i1} & x_{i2} & \cdots & x_{iD} \end{bmatrix}
+
+\\
+
+\gamma = \begin{bmatrix} \gamma_1 & \gamma_2 & \cdots & \gamma_D \end{bmatrix}
+
+,
+
+\beta = \begin{bmatrix} \beta_1 & \beta_2 & \cdots & \beta_D \end{bmatrix}
+
+\\
+
+Y = \begin{pmatrix}
+
+Y_1\\
+
+Y_2
+\\
+\vdots\\
+
+Y_N
+
+\end{pmatrix}
+,
+Y_i = \begin{bmatrix} y_{i1} & y_{i2} & \cdots & y_{iD} \end{bmatrix}
+
+```
+
+$X$ 和 $\hat{X}$ 以及 $Y$ 都是 (N,D) 的矩阵。 $\gamma$ 和 $\beta$ 这里设置为 $1 \times D$ 的行向量
+
+根据计算图，有:
+
+```math
+\mu = \frac{1}{N}\sum_{k=1}^NX_k
+\\
+v = \frac{1}{N}\sum_{k=1}^N(X_k - \mu)^2
+\\
+\sigma = \sqrt{v + \epsilon}
+\\
+\hat{X_i} = \frac{X_i - \mu}{\sigma}
+\\
+Y_i = \gamma \bigodot \hat{X_i} + \beta
+```
+
+这里需要注意两点:
+
+1. 计算图没给出 $\hat{X_i}$ 这里计算用到了
+2. $\bigodot$ 或者 $\circ$ 指的是`element-wise multiply`对应`numpy`的`*`运算符或`np.multiply()` 具体查看`Hadamard product`相关词条
+
+---
+
+接下来求 $\frac{\partial{L}}{\partial{X}}$ 、$\frac{\partial{L}}{\partial{\gamma}}$ 和 $\frac{\partial{L}}{\partial{\beta}}$
+
+先来个简单的 $\frac{\partial{L}}{\partial{\beta}}$ 练手。
+
+首先是
+
+```math
+\frac{\partial{L}}{\partial{\beta}} = \sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}} \frac{\partial{Y_i}}{\partial{\beta}}
+```
+
+其中 $\frac{\partial{L}}{\partial{Y_i}}$ 是上游传过来的`dout`的一部分。没错，这也是那篇论文的公式，但是，为什么？
+
+一般到这里有两个疑点:
+
+1. 为什么要求和？What the hell？
+2. 为什么不是 $\frac{\partial{L}}{\partial{\beta}} = \frac{\partial{L}}{\partial{Y}} \frac{\partial{Y}}{\partial{\beta}}$
+
+我在这里卡了非常非常久，后面发现其实很简单！
+
+因为本质上 $L = f(Y_1, Y_2, Y_3, \dots, Y_N)$ 是 $Y_i$ 的函数。也就是多个变量的函数，只是在计算的时候利用了`numpy`的广播机制才写出来`out = gamma * x_hat + beta`的代码，实际上是每一个 $Y_i = \gamma \bigodot \hat{X_i} + \beta$，然后多个 $Y_i$ 组合成一个矩阵 $Y$ 再交给下游的 $f$ 处理。但是下游 $f$ 实际上也只是处理 $Y_i$ 而已。
+
+所以根据上面的关于 $L = f(Y_i)$ 的理解:
+
+```math
+\frac{\partial{L}}{\partial{\beta}} = \frac{\partial{L}}{\partial{Y_1}}\frac{\partial{Y_1}}{\partial{\beta}} + \frac{\partial{L}}{\partial{Y_2}}\frac{\partial{Y_2}}{\partial{\beta}} + \dots + \frac{\partial{L}}{\partial{Y_N}}\frac{\partial{Y_N}}{\partial{\beta}} = \sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}} \frac{\partial{Y_i}}{\partial{\beta}}
+```
+
+所以就转而求 $\frac{\partial{Y_i}}{\partial{\beta}}$ 了
+
+这里介绍两个方法求 $\frac{\partial{Y_i}}{\partial{\beta}}$ (向量对向量求导)
+
+**第一个方法**: 逐个元素求导，也就是穷举出所有的组合，然后组成一个矩阵(这里不用太纠结分子布局还是分母布局)
+
+```math
+Y_i = \gamma \bigodot \hat{X_i} + \beta = 
+
+\begin{pmatrix} y_{i1} \\ y_{i2} \\ y_{i3} \\ \vdots \\ y_{iD} \end{pmatrix}^T = 
+
+\begin{pmatrix} \gamma_1\hat{x_{i1}}+\beta_1 \\ \gamma_2\hat{x_{i2}}+\beta_2 \\ \gamma_3\hat{x_{i3}}+\beta_3 \\ \vdots \\ \gamma_D\hat{x_{iD}}+\beta_D \end{pmatrix}^T
+
+\\
+
+\frac{\partial{Y_i}}{\partial{\beta}} = 
+
+\begin{pmatrix}
+
+\frac{\partial{y_{i1}}}{\partial{\beta_1}} & \frac{\partial{y_{i2}}}{\partial{\beta_1}} & \cdots & \frac{\partial{y_{iD}}}{\partial{\beta_1}}
+
+\\
+
+\frac{\partial{y_{i1}}}{\partial{\beta_2}} & \frac{\partial{y_{i2}}}{\partial{\beta_2}} & \cdots & \frac{\partial{y_{iD}}}{\partial{\beta_2}}
+
+\\
+
+\vdots & \vdots & \ddots & \vdots \\
+
+\frac{\partial{y_{i1}}}{\partial{\beta_D}} & \frac{\partial{y_{i2}}}{\partial{\beta_D}} & \cdots & \frac{\partial{y_{iD}}}{\partial{\beta_D}}
+
+\end{pmatrix}
+
+= 
+
+\begin{pmatrix}
+
+1 & 0 & \cdots & 0
+
+\\
+
+0 & 1 & \cdots & 0
+
+\\
+
+\vdots & \vdots & \ddots & \vdots \\
+
+0 & 0 & \cdots & 1
+
+\end{pmatrix} = I_D
+```
+
+实际上: $\frac{\partial{y_{ij}}}{\partial{\beta_k}} = 1$ 当且仅当 $j = k$ 
+
+**第二个方法**: 根据[矩阵求导术](https://zhuanlan.zhihu.com/p/24863977)，先求全微分，再根据矩阵相关的变换规则，求出对应的导数。不过这里显得很简单。
+
+```math
+\mathrm{d} Y_i = \mathrm{d} (\gamma \circ \hat{X_i} + \beta) = \mathrm{d} \beta
+\\
+\text{vec}(\mathrm{d} Y_i) = \text{vec}(\mathrm{d} \beta) = I_D \cdot \text{vec}(\mathrm{d} \beta)
+```
+
+$\text{vec}(X)$ 表示对矩阵 $X$ 按列优先向量化, 所以最后等式左右两边是 $D \times 1$ 尺寸，添加一个单位矩阵的技巧不影响。
+
+```math
+\text{vec}(\mathrm{d} Y_i) = \frac{\partial{Y_i}}{\partial{\beta}}^T \text{vec}(\mathrm{d} \beta )
+```
+
+得到
+
+```math
+\frac{\partial{Y_i}}{\partial{\beta}} = I_D
+```
+
+结果一样。
+
+所以最后答案是一个对角线全 $1$ 尺寸为 $D \times D$ 的单位矩阵
+
+```math
+\frac{\partial{L}}{\partial{\beta}} = \sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}} \frac{\partial{Y_i}}{\partial{\beta}} = \sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}} I_D = \sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}}
+```
+
+---
+
+继续求 $\frac{\partial{L}}{\partial{\gamma}}$
+
+```math
+\frac{\partial{L}}{\partial{\gamma}} = \sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}}\frac{\partial{Y_i}}{\partial{\gamma}}
+```
+
+因为链式法则,进一步求 $\frac{\partial{Y_i}}{\partial{\gamma}}$
+
+**第一个方法**: 逐个元素求导，也就是穷举出所有的组合，然后组成一个矩阵
+
+```math
+\frac{\partial{Y_i}}{\partial{\gamma}} = 
+
+\begin{pmatrix}
+
+\frac{\partial{y_{i1}}}{\partial{\gamma_1}} & \frac{\partial{y_{i2}}}{\partial{\gamma_1}} & \cdots & \frac{\partial{y_{iD}}}{\partial{\gamma_1}}
+
+\\
+
+\frac{\partial{y_{i1}}}{\partial{\gamma_2}} & \frac{\partial{y_{i2}}}{\partial{\gamma_2}} & \cdots & \frac{\partial{y_{iD}}}{\partial{\gamma_2}}
+
+\\
+
+\vdots & \vdots & \ddots & \vdots \\
+
+\frac{\partial{y_{i1}}}{\partial{\gamma_D}} & \frac{\partial{y_{i2}}}{\partial{\gamma_D}} & \cdots & \frac{\partial{y_{iD}}}{\partial{\gamma_D}}
+
+\end{pmatrix}
+
+= 
+
+\begin{pmatrix}
+
+x_{i1} & 0 & \cdots & 0
+
+\\
+
+0 & x_{i2} & \cdots & 0
+
+\\
+
+\vdots & \vdots & \ddots & \vdots \\
+
+0 & 0 & \cdots & x_{iD}
+
+\end{pmatrix} = \text{diag}(\hat{X_i})
+```
+
+**第二个方法:**
+
+先全微分，再利用矩阵相关法则，转成 $\text{vec}(\mathrm{d}Y_i) = \frac{\partial{Y_i}}{\partial{\gamma}}^T \text{vec}(\mathrm{d} \gamma)$ 根据对应关系求出 $\frac{\partial{Y_i}}{\partial{\gamma}}$
+
+```math
+\mathrm{d} Y_i = \mathrm{d}(\gamma \circ \hat{X_i})
+```
+
+进一步推导(注意Hadamard乘积满足**交换律**):
+
+```math
+\begin{aligned}
+
+\text{vec}(\mathrm{d} Y_i) &= \text{vec}(\mathrm{d} (\gamma \circ \hat{X_i}))\\
+
+&= \text{vec}(\mathrm{d}\gamma \circ \hat{X_i} + \gamma \circ \mathrm{d}\hat{X_i})\\
+
+&= \text{vec}(\mathrm{d}\gamma \circ \hat{X_i})\\
+
+&= \text{vec}(\hat{X_i} \circ \mathrm{d}\gamma)\\
+
+&= \text{diag}(\hat{X_i}) \text{vec}(\mathrm{d}\gamma)
+
+\end{aligned}
+```
+
+其中， $\text{diag}(\hat{X_i})$ 是将 $X_i$ 的元素，按照列优先组成的对角阵( $D \times D$ )
+
+所以:
+
+```math
+\frac{\partial{Y_i}}{\partial{\gamma}} = \text{diag}(\hat{X_i}) = 
+
+\begin{pmatrix}
+
+x_{i1} & 0 & \cdots & 0
+
+\\
+
+0 & x_{i2} & \cdots & 0
+
+\\
+
+\vdots & \vdots & \ddots & \vdots \\
+
+0 & 0 & \cdots & x_{iD}
+
+\end{pmatrix}
+
+\\
+
+\frac{\partial{L}}{\partial{\gamma}} = \sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}}\frac{\partial{Y_i}}{\partial{\gamma}} = \sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}} \text{diag}(\hat{X_i}) = \sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}} \circ \hat{X_i}
+```
+
+最后乘对角阵就相当于和 $\hat{X_i}$ 逐个元素相乘(Hadamard乘积)
+
+---
+
