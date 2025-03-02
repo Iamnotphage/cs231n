@@ -336,6 +336,7 @@ eps = 10^{-8}\\
 先规定一些符号:
 
 ```math
+\begin{aligned}
 
 X = \begin{pmatrix}
 
@@ -375,6 +376,7 @@ Y_N
 ,
 Y_i = \begin{bmatrix} y_{i1} & y_{i2} & \cdots & y_{iD} \end{bmatrix}
 
+\end{aligned}
 ```
 
 $X$ 和 $\hat{X}$ 以及 $Y$ 都是 (N,D) 的矩阵。 $\gamma$ 和 $\beta$ 这里设置为 $1 \times D$ 的行向量
@@ -617,3 +619,24 @@ x_{i1} & 0 & \cdots & 0
 
 ---
 
+求 $\frac{\partial{L}}{\partial{X}}$ 时，同样的道理。因为每次传播只是对多个样本进行运算，也就是每次计算一个 $X_i$ 。只不过实际写代码时可以直接将 $X_i$ 组合成矩阵 $X$。所以我们得推导 $\frac{\partial{L}}{\partial{X_i}}$。
+
+因为 $L = f(Y_1, Y_2, Y_3, \dots, Y_N)$ 是 $Y_i$ 的函数。而 $Y_i$ 跟 $\gamma$, $\hat{X_i}$, $\beta$ 有关系
+
+求 $\frac{\partial{L}}{\partial{\gamma}}$ 和 $\frac{\partial{L}}{\partial{\beta}}$ 时，因为每个 $Y_i$ 的 $\gamma$ 和 $\beta$ 都是一样的，所以要每个 $Y_i$ 都求导最后求和。
+
+而求 $\frac{\partial{L}}{\partial{X_i}}$ 时，比如 $\frac{\partial{L}}{\partial{X_3}}$ 只和 $Y_3$ 有关系，所以可以直接写
+
+```math
+\frac{\partial{L}}{\partial{X_i}} = \frac{\partial{L}}{\partial{Y_i}} \frac{\partial{Y_i}}{\partial{X_i}}
+```
+
+当然也可以理解为: 因为其余项和 $X_i$ 没关系，所以导数为 $0$ 最后求和仍然是单项:
+
+```math
+\frac{\partial{L}}{\partial{X_i}} = \frac{\partial{L}}{\partial{Y_1}} \frac{\partial{Y_1}}{\partial{X_i}} + \frac{\partial{L}}{\partial{Y_2}} \frac{\partial{Y_2}}{\partial{X_i}} + \dots + \frac{\partial{L}}{\partial{Y_i}} \frac{\partial{Y_i}}{\partial{X_i}} + \dots + \frac{\partial{L}}{\partial{Y_N}} \frac{\partial{Y_N}}{\partial{X_i}} = \frac{\partial{L}}{\partial{Y_i}} \frac{\partial{Y_i}}{\partial{X_i}}
+```
+
+于是，我们的问题转而求 $\frac{\partial{L}}{\partial{X_i}}$
+
+ 
