@@ -516,7 +516,7 @@ $\text{vec}(X)$ 表示对矩阵 $X$ 按列优先向量化, 所以最后等式左
 所以最后答案是一个对角线全 $1$ 尺寸为 $D \times D$ 的单位矩阵
 
 ```math
-\frac{\partial{L}}{\partial{\beta}} = \sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}} \frac{\partial{Y_i}}{\partial{\beta}} = \sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}} I_D = \sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}}
+\frac{\partial{L}}{\partial{\beta}} = \sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}} \frac{\partial{Y_i}}{\partial{\beta}} = \sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}} I_D = \boxed{\sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}}}
 ```
 
 ---
@@ -622,7 +622,7 @@ x_{i1} & 0 & \cdots & 0
 
 \\
 
-\frac{\partial{L}}{\partial{\gamma}} = \sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}}\frac{\partial{Y_i}}{\partial{\gamma}} = \sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}} \text{diag}(\hat{X_i}) = \sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}} \circ \hat{X_i}
+\frac{\partial{L}}{\partial{\gamma}} = \sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}}\frac{\partial{Y_i}}{\partial{\gamma}} = \sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}} \text{diag}(\hat{X_i}) = \boxed{\sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}} \circ \hat{X_i}}
 
 \end{aligned}
 ```
@@ -660,14 +660,22 @@ Y_i(\hat{X_i}, \beta, \gamma)
 
 \frac{\partial{L}}{\partial{Y_i}}\\
 
-\frac{\partial{L}}{\partial{\beta}} &= \sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}}\\
+\frac{\partial{L}}{\partial{\beta}} &= \boxed{\sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}}}\\
 
-\frac{\partial{L}}{\partial{\gamma}} &= \sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}} \circ \hat{X_i}
+\frac{\partial{L}}{\partial{\gamma}} &= \boxed{\sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}} \circ \hat{X_i}}
 
 \end{aligned}
 ```
 
-并且很容易得到 $\frac{\partial{L}}{\partial{\hat{X_i}}} = \frac{\partial{L}}{\partial{Y_i}} \circ \gamma$
+并且很容易得到 
+
+```math
+\begin{aligned}
+
+\frac{\partial{L}}{\partial{\hat{X_i}}} &= \boxed{\frac{\partial{L}}{\partial{Y_i}} \circ \gamma}
+
+\end{aligned}
+```
 
 也就是说 第二层的 $Y_i(\hat{X_i}, \beta, \gamma)$ 全部偏导数都知道了。
 
@@ -717,13 +725,13 @@ $L$ 对 $\hat{X_i}$ 的偏导是知道的，我们只要算后面的那一个
 所以
 
 ```math
-\frac{\partial{L}}{\partial{v}} = -\frac{1}{2}\sum_{i=1}^{N}\frac{\partial{L}}{\partial{\hat{X_i}}}(X_i - \mu)\cdot(v + \epsilon)^{-\frac{3}{2}}
+\frac{\partial{L}}{\partial{v}} = \boxed{-\frac{1}{2}\sum_{i=1}^{N}\frac{\partial{L}}{\partial{\hat{X_i}}}(X_i - \mu)\cdot(v + \epsilon)^{-\frac{3}{2}}}
 ```
 
 组合一下前面的结果，把 $\frac{\partial{L}}{\partial{\mu}}$ 求出来
 
 ```math
-\frac{\partial{L}}{\partial{\mu}} = -\sum_{i=1}^{N}\frac{\partial{L}}{\partial{\hat{X_i}}}\cdot\frac{1}{\sqrt{v + \epsilon}} - \frac{\partial{L}}{\partial{v}}\frac{2}{N}\sum_{i=1}^{N}(X_i - \mu)
+\frac{\partial{L}}{\partial{\mu}} = \boxed{-\sum_{i=1}^{N}\frac{\partial{L}}{\partial{\hat{X_i}}}\cdot\frac{1}{\sqrt{v + \epsilon}} - \frac{\partial{L}}{\partial{v}}\frac{2}{N}\sum_{i=1}^{N}(X_i - \mu)}
 ```
 
 来吧，已经求完了对 $\mu$ 和 $v$ 的偏导。就差最后的 $X_i$
@@ -755,24 +763,14 @@ $L$ 对 $\hat{X_i}$ 的偏导是知道的，我们只要算后面的那一个
 ```math
 \begin{aligned}
 
-\frac{\partial{L}}{\partial{X_i}} &= 
-
-\frac{\partial{L}}{\partial{\hat{X_i}}} \cdot \frac{1}{\sqrt{v + \epsilon}} 
-
-+ 
-
-\frac{\partial{L}}{\partial{\mu}} \cdot \frac{1}{N}
-
-+ 
-
-\frac{\partial{L}}{\partial{v}} \cdot \frac{2}{N} (X_i - \mu)
+\frac{\partial{L}}{\partial{X_i}} &= \frac{\partial{L}}{\partial{\hat{X_i}}} \cdot \frac{1}{\sqrt{v + \epsilon}} + \frac{\partial{L}}{\partial{\mu}} \cdot \frac{1}{N} + \frac{\partial{L}}{\partial{v}} \cdot \frac{2}{N} (X_i - \mu)
 
 \\
 \\
 
-&= \frac{N \frac{\partial{L}}{\partial{\hat{X_i}}} - \sum_{i=1}^{N}\frac{\partial{L}}{\partial{\hat{X_i}}} - \hat{X_i}\sum_{i=1}^{N}\frac{\partial{L}}{\partial{\hat{X_i}}}\cdot \hat{X_i}
+&= \boxed{\frac{N \frac{\partial{L}}{\partial{\hat{X_i}}} - \sum_{k=1}^{N}\frac{\partial{L}}{\partial{\hat{X_k}}} - \hat{X_i}\sum_{k=1}^{N}\frac{\partial{L}}{\partial{\hat{X_k}}}\cdot \hat{X_k}
 
-}{N\sqrt{v + \epsilon}}
+}{N\sqrt{v + \epsilon}}}
 
 \end{aligned}
 ```
@@ -800,17 +798,18 @@ $L$ 对 $\hat{X_i}$ 的偏导是知道的，我们只要算后面的那一个
 \\
 \\
 
-&= \frac{N \frac{\partial{L}}{\partial{\hat{X_i}}} - \sum_{i=1}^{N}\frac{\partial{L}}{\partial{\hat{X_i}}} - \hat{X_i}\sum_{i=1}^{N}\frac{\partial{L}}{\partial{\hat{X_i}}}\cdot \hat{X_i}
+&= \boxed{\frac{N \frac{\partial{L}}{\partial{\hat{X_i}}} - \sum_{k=1}^{N}\frac{\partial{L}}{\partial{\hat{X_k}}} - \hat{X_i}\sum_{k=1}^{N}\frac{\partial{L}}{\partial{\hat{X_k}}}\cdot \hat{X_k}
 
-}{N\sqrt{v + \epsilon}}
-
-\\
-
-\frac{\partial{L}}{\partial{\beta}} &= \sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}}
+}{N\sqrt{v + \epsilon}}}
 
 \\
 
-\frac{\partial{L}}{\partial{\gamma}} &=  \sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}} \circ \hat{X_i}
+\frac{\partial{L}}{\partial{\beta}} &= \boxed{\sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}}}
+
+\\
+
+\frac{\partial{L}}{\partial{\gamma}} &=  \boxed{\sum_{i=1}^{N}\frac{\partial{L}}{\partial{Y_i}} \circ \hat{X_i}}
 
 \end{aligned}
 ```
+

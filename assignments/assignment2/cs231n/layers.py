@@ -235,7 +235,21 @@ def batchnorm_forward(x, gamma, beta, bn_param):
         #######################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        # 按照feature来求均值: 也就是每行相加求均值
+        # 因为一行代表一个图像，每个图像的像素就是特征
+        mean = np.mean(x, axis = 0).reshape(-1, D)
+        var = np.var(x, axis = 0).reshape(-1, D)
+
+        x_hat = (x - mean) / (np.sqrt(var + eps))   # shape of (N, D)
+
+        # scale & shift: 注意这里是element-wise multiply的*乘法
+        # gamma和beta被广播成 (N, D) 兼容 逐元素相乘
+        out = gamma * x_hat + beta  # gamma (D,) beta (D,)
+
+        running_mean = momentum * running_mean + (1 - momentum) * mean
+        running_var = momentum * running_var + (1 - momentum) * var
+
+        cache = (x, x_hat, gamma, beta, mean, var, eps)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         #######################################################################
@@ -250,7 +264,10 @@ def batchnorm_forward(x, gamma, beta, bn_param):
         #######################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        x_hat = (x - running_mean) / (np.sqrt(running_var) + eps)
+        out = gamma * x_hat + beta
+
+        cache = (x, x_hat, gamma, beta, running_mean, running_var, eps)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         #######################################################################
@@ -291,8 +308,17 @@ def batchnorm_backward(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N, D = dout.shape
+    x, x_hat, gamma, beta, mean, var, eps = cache
 
+    dbeta = np.sum(dout, axis = 0).reshape(-1,) # (D,)
+    dgamma = np.sum(dout * x_hat, axis = 0).reshape(-1,)
+
+    dx_hat = gamma * dout
+    dv = -0.5 * np.sum(dx_hat * (x - mean) * ((var + eps) ** (-1.5)), axis = 0)
+    dmu = -np.sum(dx_hat / np.sqrt(var + eps), axis = 0) - dv * (2.0 / N) * np.sum(x - mean, axis = 0)
+    dx = dx_hat / np.sqrt(var + eps) + dmu * (1.0 / N) + dv * (2.0 / N) * (x - mean)
+    
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
     #                             END OF YOUR CODE                            #
@@ -325,7 +351,21 @@ def batchnorm_backward_alt(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N, D = dout.shape
+    x, x_hat, gamma, beta, mean, var, eps = cache
+
+    dbeta = np.sum(dout, axis = 0).reshape(-1,) # (D,)
+    dgamma = np.sum(dout * x_hat, axis = 0).reshape(-1,)
+
+    # Precompute shared values
+    inv_var = 1.0 / np.sqrt(var + eps)
+    dx_hat = gamma * dout
+    sum_dxhat = np.sum(dx_hat, axis = 0)
+    sum_dxhat_xhat = np.sum(dx_hat * x_hat, axis = 0)
+
+    # Compute dx
+    dx = dx_hat - sum_dxhat / N - x_hat * sum_dxhat_xhat / N
+    dx = dx * inv_var
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################

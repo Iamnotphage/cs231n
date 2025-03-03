@@ -171,10 +171,19 @@ class FullyConnectedNet(object):
             b = self.params[f"b{k}"]
             
             affine_out, affine_cache = affine_forward(layer_in, W, b)
+
+            if self.normalization == "batchnorm":
+                bn_out, bn_cache = batchnorm_forward(affine_out, 
+                    self.params[f"gamma{k}"], self.params[f"beta{k}"], self.bn_params[k - 1])
+                cache[f"bn_cache{k}"] = bn_cache
+
+                affine_out = bn_out # 兼容 normalization == None 的情况
+
             relu_out, relu_cache = relu_forward(affine_out)
             layer_in = relu_out
 
             cache[f"affine_cache{k}"] = affine_cache
+            
             cache[f"relu_cache{k}"] = relu_cache
         
         # 最后的affine层
@@ -212,6 +221,7 @@ class FullyConnectedNet(object):
 
         loss, d_affine_out = softmax_loss(scores, y)
         
+        # {affine - [batch/layer norm] - relu - [dropout]} x (L - 1) - affine - softmax
         # 这里affine_cache恰好是最后一层affine的参数
         W = self.params["W" + str(self.num_layers)]
         d_relu_out, dw, db = affine_backward(d_affine_out, affine_cache)
@@ -225,9 +235,20 @@ class FullyConnectedNet(object):
         for k in range(self.num_layers - 1, 0, -1):
             relu_cache = cache[f"relu_cache{k}"]
             affine_cache = cache[f"affine_cache{k}"]
+
             W = self.params[f"W{k}"]
 
             d_affine_out = relu_backward(d_relu_out, relu_cache)
+
+            if self.normalization == "batchnorm":
+                bn_cache = cache[f"bn_cache{k}"]
+                d_bn_out = d_affine_out # 如果是batchnrom，实际上upstream是d_bn_out
+
+                d_affine_out, dgamma, dbeta = batchnorm_backward_alt(d_bn_out, bn_cache)
+                grads[f"gamma{k}"] = dgamma
+                grads[f"beta{k}"] = dbeta
+                
+            
             d_relu_out, dw, db = affine_backward(d_affine_out, affine_cache)
 
             dw += self.reg * W
