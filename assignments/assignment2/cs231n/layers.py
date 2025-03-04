@@ -410,7 +410,15 @@ def layernorm_forward(x, gamma, beta, ln_param):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    bn_param = {
+        "mode" : "train",
+        **ln_param,
+    }
+    N, D = x.shape
+    gamma = gamma.reshape(1, D)
+    beta = beta.reshape(1, D)
+    out, cache = batchnorm_forward(x.T, gamma.T, beta.T, bn_param)
+    out = out.T
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -444,8 +452,28 @@ def layernorm_backward(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    # 最重要的转置
+    dout = dout.T
 
+    N, D = dout.shape
+    x, x_hat, gamma, beta, mean, var, eps = cache
+
+    # 注意这里axis = 1
+    dbeta = np.sum(dout, axis = 1).reshape(-1,) # (D,)
+    dgamma = np.sum(dout * x_hat, axis = 1).reshape(-1,)
+
+    # Precompute shared values
+    inv_var = 1.0 / np.sqrt(var + eps)
+    dx_hat = gamma * dout
+    sum_dxhat = np.sum(dx_hat, axis = 0)
+    sum_dxhat_xhat = np.sum(dx_hat * x_hat, axis = 0)
+
+    # Compute dx
+    dx = dx_hat - sum_dxhat / N - x_hat * sum_dxhat_xhat / N
+    dx = dx * inv_var
+
+    # 最重要的转置
+    dx = dx.T
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
     #                             END OF YOUR CODE                            #
