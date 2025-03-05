@@ -182,6 +182,11 @@ class FullyConnectedNet(object):
             relu_out, relu_cache = relu_forward(affine_out)
             layer_in = relu_out
 
+            if self.use_dropout:
+                dropout_out, dropout_cache = dropout_forward(relu_out, self.dropout_param)
+                cache[f"dropout_cache{k}"] = dropout_cache
+                layer_in = dropout_out
+
             cache[f"affine_cache{k}"] = affine_cache
             
             cache[f"relu_cache{k}"] = relu_cache
@@ -233,6 +238,11 @@ class FullyConnectedNet(object):
 
         # 反向传播(除了最后一层)
         for k in range(self.num_layers - 1, 0, -1):
+            if self.use_dropout:
+                dropout_cache = cache[f"dropout_cache{k}"]
+                d_dropout_out = d_relu_out # 因为加入了dropout层，所以这里实际上是d_dropout_out
+                d_relu_out = dropout_backward(d_dropout_out, dropout_cache)
+
             relu_cache = cache[f"relu_cache{k}"]
             affine_cache = cache[f"affine_cache{k}"]
 

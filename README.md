@@ -30,6 +30,8 @@ CV入门
 
 [Q2: Batch Normalization](./assignments/assignment2/BatchNormalization.ipynb)
 
+[Q3: Dropout](./assignments/assignment2/Dropout.ipynb)
+
 # Notes
 
 这里放一些笔记。主要是矩阵代数相关的内容。
