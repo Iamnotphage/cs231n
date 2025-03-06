@@ -32,6 +32,8 @@ CV入门
 
 [Q3: Dropout](./assignments/assignment2/Dropout.ipynb)
 
+[Q4: Convolutional Neural Networks](./assignments/assignment2/ConvolutionalNetworks.ipynb)
+
 # Notes
 
 这里放一些笔记。主要是矩阵代数相关的内容。
