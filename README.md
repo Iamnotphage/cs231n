@@ -34,6 +34,8 @@ CV入门
 
 [Q4: Convolutional Neural Networks](./assignments/assignment2/ConvolutionalNetworks.ipynb)
 
+[Q5: PyTorch on CIFAR-10](./assignments/assignment2/PyTorch.ipynb)
+
 # Notes
 
 这里放一些笔记。主要是矩阵代数相关的内容。
