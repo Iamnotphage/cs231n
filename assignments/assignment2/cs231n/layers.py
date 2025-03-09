@@ -607,8 +607,30 @@ def conv_forward_naive(x, w, b, conv_param):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    stride = conv_param["stride"]
+    pad = conv_param["pad"]
+    N, C, H, W = x.shape
+    F, _, HH, WW = w.shape
 
+    H_ = 1 + (H + 2 * pad - HH) // stride
+    W_ = 1 + (W + 2 * pad - WW) // stride
+
+    x_pad = np.pad(x, ((0, 0), (0, 0), (pad, pad), (pad, pad)),
+                   mode = 'constant', constant_values = 0)
+
+    out = np.zeros((N, F, H_, W_)) # Output data, of shape (N, F, H', W')
+
+    for xi in range(0, H + 2 * pad - HH + 1, stride):
+        for yi in range(0, W + 2 * pad - WW + 1, stride):
+            area = x_pad[:, :, xi: xi + HH, yi: yi + WW] 
+            # 取卷积核大小的area后续再求点积 (Frobenius积)
+            for f in range(F):
+                # 一共有F个filter 卷积核
+                out[:, f, xi // stride, yi // stride] += (area * w[f,:,:,:]).sum(axis = (1,2,3))
+                # 对 C, HH, WW维度进行求和(axis = (1,2,3))
+                # 得到卷积值 位置是out[:,f,...,...]
+            out[:,:, xi // stride, yi // stride] += b
+    
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
     #                             END OF YOUR CODE                            #
@@ -635,7 +657,34 @@ def conv_backward_naive(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    x, w, b, conv_param = cache
+    stride = conv_param["stride"]
+    pad = conv_param["pad"]
+    N, C, H, W = x.shape
+    F, _, HH, WW = w.shape
+
+    H_ = 1 + (H + 2 * pad - HH) // stride
+    W_ = 1 + (W + 2 * pad - WW) // stride
+
+    x_pad = np.pad(x, ((0, 0), (0, 0), (pad, pad), (pad, pad)),
+                   mode = 'constant', constant_values = 0)
+
+    db = np.sum(dout, axis = (0,2,3))
+    dw = np.zeros_like(w)
+    dx_pad = np.zeros_like(x_pad)
+    
+    for xi in range(0, H + 2 * pad - HH + 1, stride):
+        for yi in range(0, W + 2 * pad - WW + 1, stride):
+            area = x_pad[:, :, xi: xi + HH, yi: yi + WW]
+
+            for f in range(F):
+                dw[f,:,:,:] += np.sum(dout[:, f, xi // stride, yi // stride][:, np.newaxis, np.newaxis, np.newaxis] * area, axis = 0)
+                
+                for i in range(N):
+                    dx_pad[i, :, xi: xi+HH, yi: yi+WW] += w[f,:,:,:] * dout[i, f, xi//stride, yi//stride]
+    
+    dx = dx_pad[:,:, pad:-pad, pad:-pad]
+
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
