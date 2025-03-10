@@ -719,7 +719,18 @@ def max_pool_forward_naive(x, pool_param):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N, C, H, W = x.shape
+    pool_height = pool_param["pool_height"]
+    pool_width = pool_param["pool_width"]
+    stride = pool_param["stride"]
+
+    H_ = 1 + (H - pool_height) // stride
+    W_ = 1 + (W - pool_width) // stride
+    out = np.zeros((N, C, H_, W_))
+
+    for xi in range(0, H - pool_height + 1, stride):
+        for yi in range(0, W - pool_width + 1, stride):
+            out[:, :, xi // stride, yi // stride] = np.max(x[:, :, xi: xi + pool_height, yi: yi + pool_width], axis = (2,3))
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -745,7 +756,25 @@ def max_pool_backward_naive(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    x, pool_param = cache
+
+    N, C, H, W = x.shape
+    pool_height = pool_param["pool_height"]
+    pool_width = pool_param["pool_width"]
+    stride = pool_param["stride"]
+
+    H_ = 1 + (H - pool_height) // stride
+    W_ = 1 + (W - pool_width) // stride
+
+    dx = np.zeros_like(x)
+
+    for xi in range(0, H - pool_height + 1, stride):
+        for yi in range(0, W - pool_width + 1, stride):
+            area = x[:, :, xi: xi + pool_height, yi: yi + pool_width]
+            maxval = np.max(area, axis = (2,3), keepdims=True)
+            mask = (area == maxval)
+
+            dx[:, :, xi: xi + pool_height, yi: yi + pool_width] += mask * dout[:, :, xi // stride, yi // stride][:, :, np.newaxis, np.newaxis]
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
