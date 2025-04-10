@@ -1,6 +1,6 @@
 # cs231n
 
-CV入门
+CS231n Deep Learning for Computer Vision **2024**
 
 # 环境
 
@@ -35,6 +35,10 @@ CV入门
 [Q4: Convolutional Neural Networks](./assignments/assignment2/ConvolutionalNetworks.ipynb)
 
 [Q5: PyTorch on CIFAR-10](./assignments/assignment2/PyTorch.ipynb)
+
+## Assignment 3
+
+[Q1: Image Captioning with Vanilla RNNs](./assignments/assignment3/RNN_Captioning.ipynb)
 
 # Notes
 
@@ -819,3 +823,10 @@ $L$ 对 $\hat{X_i}$ 的偏导是知道的，我们只要算后面的那一个
 \end{aligned}
 ```
 
+## RNN
+
+这里简单阐述Vanilla RNN的反向传播推导。
+
+---
+
+以及`word_embedding`的反向传播推导。
