@@ -40,6 +40,8 @@ CS231n Deep Learning for Computer Vision **2024**
 
 [Q1: Image Captioning with Vanilla RNNs](./assignments/assignment3/RNN_Captioning.ipynb)
 
+[Extra Credit: Image Captioning with LSTMs](./assignments/assignment3/LSTM_Captioning.ipynb)
+
 # Notes
 
 这里放一些笔记。主要是矩阵代数相关的内容。
@@ -921,3 +923,7 @@ for i in range(N):
 # 等价于
 np.add.at(dW, x.reshape(-1), dout.reshape(-1, D))
 ```
+
+---
+
+LSTM 的由于用的`element-wise`的乘法，更简单，此处略过。
