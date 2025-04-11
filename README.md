@@ -827,6 +827,97 @@ $L$ 对 $\hat{X_i}$ 的偏导是知道的，我们只要算后面的那一个
 
 这里简单阐述Vanilla RNN的反向传播推导。
 
+计算图略。下面是Vanilla RNN的公式。
+
+```math
+\begin{aligned}
+
+u &= h_{t - 1} W_h + x_t W_x + b
+\\
+h_t &= \tanh{u}
+\\
+y_t &= h_tW_{hy} + b
+
+
+\end{aligned}
+```
+
+这里唯一需要注意的就是`cs231n/rnn_layers.py`中的`rnn_step_backward()`传入的上游梯度。
+
+在`t`时刻这个单元应该接收两个梯度，一个是从 $y_t$ 传来的，一个是从 $h_t$ 传来的。
+
+(因为 $h_t$ 这个变量传给`y`和下一个时刻了，所以有两个方向，这个在后续`rnn_backward()`中会体现)
+
+这两者的`loss`的梯度记作 $\frac{\partial L}{\partial h_t}$
+
+那么BP的导数:
+
+```math
+\begin{aligned}
+
+\frac{\partial L}{\partial u} &= \frac{\partial L}{\partial h_t} \cdot (1 - \tanh^2{u})
+\\
+\frac{\partial L}{\partial x_t} &= \frac{\partial L}{\partial u} \cdot W_x^T
+\\
+\frac{\partial L}{\partial h_{t-1}} &= \frac{\partial L}{\partial u} \cdot W_h^T
+\\
+\frac{\partial L}{\partial W_x} &= \frac{\partial L}{\partial u} \cdot x_t^T
+\\
+\frac{\partial L}{\partial W_h} &= \frac{\partial L}{\partial u} \cdot h_{t-1}^T
+\\
+\frac{\partial L}{\partial b} &= \frac{\partial L}{\partial u} \cdot I_N
+
+\end{aligned}
+```
+
 ---
 
 以及`word_embedding`的反向传播推导。
+
+我们定义：
+
+输入词索引矩阵：$x$ 尺寸为 $(N, T)$
+
+词向量矩阵：$W$ 尺寸为 $(V, D)$
+
+输出嵌入：$out$ 尺寸为 $(N, T, D)$
+
+$out$ 中每个位置 $(i, t)$ 上的输出向量是：
+
+```math
+out[i,t]=W[x[i,t]]
+```
+
+也就是说，$out[i, t]$ 是矩阵 $W$ 的第 $x[i, t]$ 行。
+
+对`out`有贡献的是`W`中的某些行，并且这些行使得行号 `v=x[i,t]`
+
+所以对`out[i, t]`求导的话，应该是`W[v]`对应的一行，这里`v=x[i,t]`
+
+所以有:
+
+```math
+\begin{aligned}
+\frac{\partial L}{\partial W[v]} = \sum_{(i,t)} \frac{\partial L}{\partial out[i,t]} \cdot \frac{\partial out[i,t]}{\partial W[v]}
+\end{aligned}
+```
+
+当且仅当:
+
+```math
+\begin{aligned}
+\frac{\partial out[i,t]}{\partial W[v]} = 1, \text{when } x[i,t] = v
+\end{aligned}
+```
+
+得到代码:
+
+```python
+for i in range(N):
+    for t in range(T):
+        v = x[i, t]
+        dW[v] += dout[i, t]
+
+# 等价于
+np.add.at(dW, x.reshape(-1), dout.reshape(-1, D))
+```
