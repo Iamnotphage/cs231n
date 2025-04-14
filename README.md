@@ -38,7 +38,12 @@ CS231n Deep Learning for Computer Vision **2024**
 
 ## Assignment 3
 
+> Network Visualization, Image Captioning with RNNs and Transformers, Generative Adversarial Networks, Self-Supervised Contrastive Learning
+Module 0: Preparation
+
 [Q1: Image Captioning with Vanilla RNNs](./assignments/assignment3/RNN_Captioning.ipynb)
+
+[Q2: Image Captioning with Transformers](./assignments/assignment3/Transformer_Captioning.ipynb)
 
 [Extra Credit: Image Captioning with LSTMs](./assignments/assignment3/LSTM_Captioning.ipynb)
 

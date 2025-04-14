@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from torch.nn import functional as F
+from torch.nn import attention, functional as F
 import math
 
 """
@@ -38,7 +38,13 @@ class PositionalEncoding(nn.Module):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        # shape: (max_len, 1)
+        position = torch.arange(0, max_len).unsqueeze(1)
+        # shape: (embed_dim // 2)
+        div_term = torch.exp(torch.arange(0, embed_dim, 2) * (-math.log(10000.0) / embed_dim))
+
+        pe[0, :, 0::2] = torch.sin(position * div_term)  # 偶数维
+        pe[0, :, 1::2] = torch.cos(position * div_term)  # 奇数维
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -70,7 +76,8 @@ class PositionalEncoding(nn.Module):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        x = x + self.pe[:, :x.size(1), :]
+        output = self.dropout(x)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -165,7 +172,32 @@ class MultiHeadAttention(nn.Module):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        H = self.n_head
+
+        # linear
+        q = self.query(query)
+        k = self.key(key)
+        v = self.value(value)
+        
+        # query -> (N, H, S, E // H)
+        # key, value -> (N, H, T, E // H)
+        q = q.view(N, S, H, E // H).transpose(1, 2)
+        k = k.view(N, T, H, E // H).transpose(1, 2)
+        v = v.view(N, T, H, E // H).transpose(1, 2)
+
+
+        # scaled dot product attention
+        scores = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(E / H)
+
+        if attn_mask is not None:
+          scores = scores.masked_fill(attn_mask[None, None, :, :] == 0, float('-inf'))
+
+        head = torch.matmul(self.attn_drop(F.softmax(scores, dim=-1)), v)
+
+        # head (N, H, S, E // H) -> head (N, S, E)
+        # concat & linear
+        head = head.transpose(1, 2).reshape(N, S, E)
+        output = self.proj(head)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
