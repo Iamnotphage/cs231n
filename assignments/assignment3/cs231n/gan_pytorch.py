@@ -30,7 +30,7 @@ def sample_noise(batch_size, dim, seed=None):
 
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    return torch.rand((batch_size, dim)) * 2 - 1
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -51,7 +51,15 @@ def discriminator(seed=None):
     ##############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    model = nn.Sequential(
+            Flatten(),
+            nn.Linear(784, 256),
+            nn.LeakyReLU(0.01),
+            nn.Linear(256, 256),
+            nn.LeakyReLU(0.01),
+            nn.Linear(256, 1)
+        )
+    
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ##############################################################################
@@ -76,7 +84,14 @@ def generator(noise_dim=NOISE_DIM, seed=None):
     ##############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    model = nn.Sequential(
+            nn.Linear(noise_dim, 1024),
+            nn.ReLU(),
+            nn.Linear(1024, 1024),
+            nn.ReLU(),
+            nn.Linear(1024, 784),
+            nn.Tanh()
+        )
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ##############################################################################
@@ -112,7 +127,15 @@ def discriminator_loss(logits_real, logits_fake):
     loss = None
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N = logits_real.shape[0]
+
+    real_labels = torch.ones((N,)).type(dtype)
+    fake_labels = torch.zeros((N,)).type(dtype)
+
+    loss_real = bce_loss(logits_real, real_labels)
+    loss_fake = bce_loss(logits_fake, fake_labels)
+
+    loss = loss_real + loss_fake
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     return loss
@@ -130,7 +153,9 @@ def generator_loss(logits_fake):
     loss = None
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N = logits_fake.shape[0]
+    fake_labels = torch.ones((N,)).type(dtype)
+    loss = bce_loss(logits_fake, fake_labels)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     return loss
@@ -149,7 +174,7 @@ def get_optimizer(model):
     optimizer = None
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    optimizer = optim.Adam(model.parameters(), lr=1e-3, betas=(0.5, 0.999))
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     return optimizer
@@ -168,7 +193,13 @@ def ls_discriminator_loss(scores_real, scores_fake):
     loss = None
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    loss_real = (scores_real - 1) ** 2
+    loss_real = 0.5 * loss_real.mean()
+
+    loss_fake = scores_fake ** 2
+    loss_fake = 0.5 * loss_fake.mean()
+
+    loss = loss_real + loss_fake
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     return loss
@@ -186,7 +217,8 @@ def ls_generator_loss(scores_fake):
     loss = None
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    loss_fake = (scores_fake - 1) ** 2
+    loss = 0.5 * loss_fake.mean()
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     return loss
@@ -204,7 +236,31 @@ def build_dc_classifier(batch_size):
     ##############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    # MNIST images (N, 1, 28, 28)
+    # Conv2D: 32 Filters, 5x5, Stride 1 -> (N, 32, 24, 24)
+    # LeakyReLU: alpha=0.01 -> (N, 32, 24, 24)
+    # Max Pool: 2x2, Stride 2 -> (N, 32, 12, 12)
+    # Conv2D: 64 Filters, 5x5, Stride 1 -> (N, 64, 8, 8)
+    # LeakyReLU: alpha=0.01 -> (N, 64, 8, 8)
+    # Max Pool: 2x2, Stride 2 -> (N, 64, 4, 4)
+    # Flatten -> (N, 1024)
+    # Fully Connected with output size 4 x 4 x 64 -> (N, 1024)
+    # Leaky ReLU(alpha=0.01) -> (N, 1024)
+    # Fully Connected with output size 1 -> (N, 1)
+    model = nn.Sequential(
+        nn.Conv2d(1, 32, 5, 1),
+        nn.LeakyReLU(0.01),
+        nn.MaxPool2d(2, 2),
+        nn.Conv2d(32, 64, 5, 1),
+        nn.LeakyReLU(0.01),
+        nn.MaxPool2d(2, 2),
+        Flatten(),
+        nn.Linear(1024, 1024),
+        nn.LeakyReLU(0.01),
+        nn.Linear(1024, 1),
+    )
+
+    return model
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ##############################################################################
@@ -225,7 +281,42 @@ def build_dc_generator(noise_dim=NOISE_DIM):
     ##############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    # Noise size (N, noise_dim)
+    # Fully connected with output size 1024 -> (N, 1024)
+    # ReLU -> (N, 1024)
+    # BatchNorm -> (N, 1024)
+    # Fully connected with output size 7 x 7 x 128 -> (N, 6272)
+    # ReLU -> (N, 6272)
+    # BatchNorm -> (N, 6272)
+    # Unflatten() -> (N, 128, 7, 7)
+    # ConvTranspose2d: 64 filters of 4x4, stride 2, padding 1
+    #          H' = (7 - 1) * 2 - 2 * 1 + (4 - 1) + 1
+    #            = 14
+    #          -> (N, 64, 14, 14)
+    # ReLU -> (N, 64, 14, 14)
+    # BatchNorm -> (N, 64, 14, 14)
+    # ConvTranspose2d: 1 filter of 4x4, stride 2, padding 1
+    #          H' = (14 - 1) * 2 - 2 * 1 + (4 - 1) + 1
+    #            = 28
+    #          -> (N, 1, 28, 28)
+    # TanH -> (N, 1, 28, 28)
+    # Flatten() -> (N, 28 * 28)
+    model = nn.Sequential(
+        nn.Linear(noise_dim ,1024),
+        nn.ReLU(),
+        nn.BatchNorm1d(1024),
+        nn.Linear(1024, 7 * 7 * 128),
+        nn.ReLU(),
+        nn.BatchNorm1d(6272),
+        Unflatten(),
+        nn.ConvTranspose2d(128, 64, 4, 2, 1),
+        nn.ReLU(),
+        nn.BatchNorm2d(64),
+        nn.ConvTranspose2d(64, 1, 4, 2, 1),
+        Flatten(),
+    )
+
+    return model
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ##############################################################################

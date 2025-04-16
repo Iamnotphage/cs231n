@@ -45,6 +45,10 @@ Module 0: Preparation
 
 [Q2: Image Captioning with Transformers](./assignments/assignment3/Transformer_Captioning.ipynb)
 
+[Q3: Generative Adversarial Networks](./assignments/assignment3/Generative_Adversarial_Networks.ipynb)
+
+[Q4: Self-Supervised Learning for Image Classification]
+
 [Extra Credit: Image Captioning with LSTMs](./assignments/assignment3/LSTM_Captioning.ipynb)
 
 # Notes
