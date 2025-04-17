@@ -47,7 +47,7 @@ Module 0: Preparation
 
 [Q3: Generative Adversarial Networks](./assignments/assignment3/Generative_Adversarial_Networks.ipynb)
 
-[Q4: Self-Supervised Learning for Image Classification]
+[Q4: Self-Supervised Learning for Image Classification](./assignments/assignment3/Self_Supervised_Learning.ipynb)
 
 [Extra Credit: Image Captioning with LSTMs](./assignments/assignment3/LSTM_Captioning.ipynb)
 
